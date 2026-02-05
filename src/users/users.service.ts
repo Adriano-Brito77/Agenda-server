@@ -121,6 +121,9 @@ export class UsersService {
       occupation,
     }: UpdateUserDto,
   ) {
+    /* valida se o id existe*/
+    await this.findOne(id);
+
     /* valida se o e-mail já está em uso */
     const emailAlreadyExists = await this.prisma.user.findFirst({
       where: { email, role, NOT: { id } },

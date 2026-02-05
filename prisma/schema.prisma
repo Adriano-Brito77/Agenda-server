@@ -58,10 +58,28 @@ model Company {
   address    String
 
   user_id     String 
+
+  company_services CompanyService[]
   
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
 
   @@map("companies")
+}
+
+
+model CompanyService {
+  id String @id @default(uuid())
+
+  name        String
+  description String
+
+  company_id  String 
+  company    Company @relation(fields: [company_id], references: [id]) 
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  @@map("company_services")
 }

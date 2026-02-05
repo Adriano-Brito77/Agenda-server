@@ -114,6 +114,9 @@ export class CompaniesService {
       address,
     }: UpdateCompanyDto,
   ) {
+    /* valida se o id existe*/
+    await this.findOne(id);
+
     /* valida se o CNPJ já está em uso */
     const cnpjExists = await this.prisma.company.findFirst({
       where: { cnpj, NOT: { id } },
