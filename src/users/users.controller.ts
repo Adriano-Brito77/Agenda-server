@@ -5,13 +5,14 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   UseGuards,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtGuard } from 'src/auth/jwt/jwt-guard';
 
 import { createUserBodySchema, CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { updateUserBodySchema, UpdateUserDto } from './dto/update-user.dto';
 import { UsersService } from './users.service';
 
 @Controller('users')
@@ -24,20 +25,21 @@ export class UsersController {
   ) {
     return this.usersService.create(createUserDto);
   }
-
-  @UseGuards(JwtGuard)
+ 
   @Get()
+  @UseGuards(JwtGuard)
   findAll() {
     return this.usersService.findAll();
   }
-
   @Get(':id')
+  @UseGuards(JwtGuard)
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
+    return this.usersService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(+id, updateUserDto);
+  @Put(':id')
+  @UseGuards(JwtGuard)
+  update(@Param('id') id: string, @Body(new ZodValidationPipe(updateUserBodySchema)) updateUserDto: UpdateUserDto) {
+    return this.usersService.update(id, updateUserDto);
   }
 }

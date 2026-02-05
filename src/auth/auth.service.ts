@@ -12,7 +12,7 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 
 import 'dotenv/config';
 
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/prisma.service';
 import { UsersService } from 'src/users/users.service';
 import { CreateAuthAdminDto } from './dto/create-auth-admin.dto';
 import { CreateAuthProfessionalDto } from './dto/create-auth-professional.dto';

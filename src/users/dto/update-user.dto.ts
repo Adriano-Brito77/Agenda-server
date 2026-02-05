@@ -9,11 +9,11 @@ const updateUserBodySchema = z
     role: z.enum(['user', 'admin', 'professional'], {
       message: 'Role must be either "user", "admin", or "professional"',
     }),
-    notification_time: z.string().optional(),
+    notification_time: z.number().optional(),
     company_id: z.string().optional().nullable(),
-    phone: z.string().min(10).max(15),
+    phone_number: z.string().min(10).max(15),
     occupation: z.string().optional().nullable(),
-    birth_date: z
+    birth_day: z
       .string()
       .transform((val) => new Date(val))
       .optional(),

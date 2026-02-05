@@ -34,7 +34,9 @@ model User {
   notification_time     Int?
   phone_number         String?
   occupation           String?
-  company_id              String? 
+  company_id           String? 
+
+
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
@@ -48,13 +50,15 @@ model Company {
 
   name        String
   email       String
-  cnpj        String
-  user_id     String
+  cnpj        String  
   phone_number String
   open_date DateTime
   start_time String
   end_time   String
   address    String
+
+  user_id     String 
+  
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  

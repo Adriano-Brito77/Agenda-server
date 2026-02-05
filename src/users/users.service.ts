@@ -1,7 +1,11 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { hash } from 'bcrypt';
 
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from 'src/prisma.service';
 import { PaginationService } from './../pagination/pagination.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -13,7 +17,6 @@ export const userSelect = {
   cpf: true,
   role: true,
   birth_day: true,
-  password_hash: true,
   notification_time: true,
   phone_number: true,
   occupation: true,
@@ -36,6 +39,7 @@ export class UsersService {
     birth_day,
     occupation,
     password,
+    notification_time,
     confirmPassword,
   }: CreateUserDto) {
     /* valida se o e-mail já está em uso */
@@ -78,6 +82,7 @@ export class UsersService {
         phone_number,
         birth_day: birth_day,
         company_id,
+        notification_time,
         occupation,
         role,
       },
@@ -88,11 +93,79 @@ export class UsersService {
     return `This action returns all users`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async findOne(id: string) {
+    const userExist = await this.prisma.user.findUnique({
+      where: { id },
+      select: userSelect,
+    });
+
+    if (!userExist) {
+      throw new NotFoundException('Usuário não encontrado');
+    }
+    return userExist;
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(
+    id: string,
+    {
+      name,
+      cpf,
+      email,
+      password,
+      confirmPassword,
+      phone_number,
+      role,
+      birth_day,
+      company_id,
+      notification_time,
+      occupation,
+    }: UpdateUserDto,
+  ) {
+    /* valida se o e-mail já está em uso */
+    const emailAlreadyExists = await this.prisma.user.findFirst({
+      where: { email, role, NOT: { id } },
+    });
+
+    if (emailAlreadyExists) {
+      throw new ConflictException('Este e-mail já está em uso');
+    }
+
+    /* valida se o CPF já está em uso */
+    const cpfAlreadyExists = await this.prisma.user.findFirst({
+      where: { cpf, role, NOT: { id } },
+    });
+
+    if (cpfAlreadyExists) {
+      throw new ConflictException('Este CPF já está em uso');
+    }
+
+    if (birth_day) {
+      birth_day = new Date(birth_day);
+    }
+
+    /* valida se senha e confirmar senha conferem */
+    if (password !== confirmPassword) {
+      throw new ConflictException('Senha e confirmar senha devem ser iguais');
+    }
+
+    /* criptografa a senha para salvar no banco de dados */
+    const passwordHash = await hash(password, 8);
+
+    /* atualiza os dados do usuário */
+    await this.prisma.user.update({
+      where: { id },
+      data: {
+        name,
+        cpf,
+        email,
+        password_hash: passwordHash,
+        phone_number,
+        role,
+        birth_day: birth_day,
+        company_id,
+        notification_time,
+        occupation,
+      },
+    });
   }
 }
