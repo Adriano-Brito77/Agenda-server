@@ -36,7 +36,7 @@ model User {
   occupation           String?
   company_id           String? 
 
-
+  professional_services ProfessionalService[]
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
@@ -60,6 +60,7 @@ model Company {
   user_id     String 
 
   company_services CompanyService[]
+  professional_services ProfessionalService[]
   
 
   created_at DateTime @default(now())
@@ -78,8 +79,32 @@ model CompanyService {
   company_id  String 
   company    Company @relation(fields: [company_id], references: [id]) 
 
+  prodessional_services ProfessionalService[]
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
 
   @@map("company_services")
+}
+
+model ProfessionalService {
+  id String @id @default(uuid())
+
+  value       Float
+  description String
+  duration    Int
+
+  company_id          String 
+  company             Company @relation(fields: [company_id], references: [id]) 
+
+  company_service_id   String 
+  company_service      CompanyService @relation(fields: [company_service_id], references: [id]) 
+
+  professional_id      String 
+  professional         User @relation(fields: [professional_id], references: [id]) 
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  @@map("professional_services")
 }

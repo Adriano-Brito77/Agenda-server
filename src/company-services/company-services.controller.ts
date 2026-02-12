@@ -1,23 +1,22 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Delete,
-  UseGuards,
+  Post,
+  Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { JwtGuard } from 'src/auth/jwt/jwt-guard';
 import { CompanyServicesService } from './company-services.service';
+import { CompanyDto } from './dto/company.dto';
 import {
   createCompanyServiceBodySchema,
   CreateCompanyServiceDto,
 } from './dto/create-company-service.dto';
 import { UpdateCompanyServiceDto } from './dto/update-company-service.dto';
-import { JwtGuard } from 'src/auth/jwt/jwt-guard';
-import { ZodValidationPipe } from 'nestjs-zod';
-import { CompanyDto } from './dto/company.dto';
 
 @Controller('company-services')
 @UseGuards(JwtGuard)
@@ -44,7 +43,7 @@ export class CompanyServicesController {
     return this.companyServicesService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(
     @Param('id') id: string,
     @Body() updateCompanyServiceDto: UpdateCompanyServiceDto,
