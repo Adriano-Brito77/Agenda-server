@@ -3,4 +3,5 @@ export class PaginationDto {
   pageSize: number;
   search?: any;
   orderBy?: any;
+  company_id?: string;
 }

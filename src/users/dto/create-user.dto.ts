@@ -1,6 +1,5 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import no from 'zod/v4/locales/no.js';
 
 const createUserBodySchema = z
   .object({
@@ -11,7 +10,7 @@ const createUserBodySchema = z
       message: 'Role must be either "user", "admin", or "professional"',
     }),
     company_id: z.string().optional().nullable(),
-    phone_number: z.string().min(10).max(15),
+    phone_number: z.string().min(10).max(15).optional().nullable(),
     notification_time: z.number().optional(),
     occupation: z.string().optional().nullable(),
     birth_day: z

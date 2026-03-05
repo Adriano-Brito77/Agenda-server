@@ -11,7 +11,7 @@ const updateUserBodySchema = z
     }),
     notification_time: z.number().optional(),
     company_id: z.string().optional().nullable(),
-    phone_number: z.string().min(10).max(15),
+    phone_number: z.string().min(10).max(15).nullable().optional(),
     occupation: z.string().optional().nullable(),
     birth_day: z
       .string()
