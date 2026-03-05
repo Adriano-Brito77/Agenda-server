@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PaginationDto } from 'src/pagination/dto/pagination.dto';
 import { PaginationService } from 'src/pagination/pagination.service';
 import { PrismaService } from 'src/prisma.service';
@@ -96,7 +92,7 @@ export class ProfessionalSchedulesService {
     }
 
     if (!company_id) {
-      throw new BadRequestException('Company ID is required');
+      throw new NotFoundException('Empresa não encontrada');
     }
 
     if (search) {
@@ -134,7 +130,6 @@ export class ProfessionalSchedulesService {
           professional: {
             include: { work_days: true },
           },
-          company: true,
         },
       },
     );
@@ -231,6 +226,11 @@ export class ProfessionalSchedulesService {
 
     /* Deleta os dias de trabalho */
     await this.prisma.workDays.deleteMany({
+      where: { professional_id: professionalSchedule.professional_id },
+    });
+
+    /* Deleta os dias de folga */
+    await this.prisma.exceptionDays.deleteMany({
       where: { professional_id: professionalSchedule.professional_id },
     });
 

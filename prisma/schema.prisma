@@ -39,6 +39,7 @@ model User {
   professional_services ProfessionalService[]
   professional_schedules ProfessionalSchedule[]
   work_days WorkDays[]
+
   
 
   created_at DateTime @default(now())
@@ -65,6 +66,7 @@ model Company {
   company_services CompanyService[]
   professional_services ProfessionalService[]
   professional_schedules ProfessionalSchedule[]
+  exception_days ExceptionDays[]
   
   
 
@@ -149,3 +151,20 @@ model WorkDays {
   @@map("work_days")
 }
 
+model ExceptionDays {
+  id String @id @default(uuid())
+
+  date DateTime
+  start_time String?
+  end_time String?
+  professional_id String?
+  
+
+  company_id String
+  company Company @relation(fields: [company_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  @@map("exception_days")
+}

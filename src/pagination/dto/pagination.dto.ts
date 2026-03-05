@@ -4,4 +4,5 @@ export class PaginationDto {
   search?: any;
   orderBy?: any;
   company_id?: string;
+  professional_id?: string;
 }
