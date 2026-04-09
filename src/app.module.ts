@@ -7,9 +7,10 @@ import { CompanyServicesModule } from './company-services/company-services.modul
 import { ProfessionalServicesModule } from './professional-services/professional-services.module';
 import { ProfessionalSchedulesModule } from './professional-schedules/professional-schedules.module';
 import { ExceptionDaysModule } from './exception-days/exception-days.module';
+import { ProductsModule } from './products/products.module';
 
 @Module({
-  imports: [UsersModule, AuthModule, CompaniesModule, CompanyServicesModule, ProfessionalServicesModule, ProfessionalSchedulesModule, ExceptionDaysModule],
+  imports: [UsersModule, AuthModule, CompaniesModule, CompanyServicesModule, ProfessionalServicesModule, ProfessionalSchedulesModule, ExceptionDaysModule, ProductsModule],
   controllers: [],
   providers: [PrismaService],
 })

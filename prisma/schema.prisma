@@ -67,6 +67,7 @@ model Company {
   professional_services ProfessionalService[]
   professional_schedules ProfessionalSchedule[]
   exception_days ExceptionDays[]
+  products Products[]
   
   
 
@@ -86,7 +87,8 @@ model CompanyService {
   company_id  String 
   company    Company @relation(fields: [company_id], references: [id]) 
 
-  prodessional_services ProfessionalService[]
+  professional_services ProfessionalService[]
+  
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
@@ -168,3 +170,26 @@ model ExceptionDays {
 
   @@map("exception_days")
 }
+
+
+model Products {
+  id String @id @default(uuid())
+
+  name        String
+  description String
+  barcode     String  
+  price       Float
+  unit        String
+
+  company_id  String 
+  company    Company @relation(fields: [company_id], references: [id]) 
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  @@map("products")
+}
+
+
+
+
