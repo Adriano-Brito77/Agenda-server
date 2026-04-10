@@ -200,14 +200,14 @@ model Products {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
 
-  stock_movements StockMovement[]
+  stock_movements StockMovements[]
   stock_balances stock_balance[]
 
 
   @@map("products")
 }
 
-model StockMovement {
+model StockMovements {
   id String @id @default(uuid())
 
   type              StockMovementType
@@ -234,7 +234,7 @@ model stock_balance{
 
   quantity Int  
 
-  product_id String
+  product_id String  @unique
   product Products @relation(fields: [product_id], references: [id])
 
   

@@ -1,7 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-const updateStockMovimentBodySchema = z
+const updateStockMovementBodySchema = z
   .object({
     type: z.enum(['IN', 'OUT']),
     reference_type: z.enum(['PURCHASE', 'ENTRY', 'SALE', 'STOCK_OUT']),
@@ -13,7 +13,7 @@ const updateStockMovimentBodySchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido')
       .transform((date) => new Date(date)),
     purchase_order_id: z.string().optional(),
-    productId: z.string(),
+    product_id: z.string(),
   })
   .superRefine((data, ctx) => {
     const isPurchaseIn =
@@ -51,7 +51,7 @@ const updateStockMovimentBodySchema = z
     }
   });
 class UpdateStockMovementDto extends createZodDto(
-  updateStockMovimentBodySchema,
+  updateStockMovementBodySchema,
 ) {}
 
-export { UpdateStockMovementDto, updateStockMovimentBodySchema };
+export { updateStockMovementBodySchema, UpdateStockMovementDto };

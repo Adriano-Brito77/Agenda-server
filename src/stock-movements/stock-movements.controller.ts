@@ -6,12 +6,12 @@ import {
   Param,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
-import type { AuthUser } from '../auth/jwt/current-user';
-import { CurrentUser } from '../auth/jwt/current-user';
 import { JwtGuard } from '../auth/jwt/jwt-guard';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
 import {
   createStockMovementBodySchema,
   CreateStockMovementDto,
@@ -31,14 +31,13 @@ export class StockMovementsController {
   create(
     @Body(new ZodValidationPipe(createStockMovementBodySchema))
     createStockMovementDto: CreateStockMovementDto,
-    @CurrentUser() user: AuthUser,
   ) {
-    return this.stockMovementsService.create(user.id, createStockMovementDto);
+    return this.stockMovementsService.create(createStockMovementDto);
   }
 
-  @Get()
-  findAll() {
-    return this.stockMovementsService.findAll();
+  @Get('/company')
+  findAll(@Query() pagination: PaginationDto) {
+    return this.stockMovementsService.findAll(pagination);
   }
 
   @Get(':id')
@@ -51,17 +50,12 @@ export class StockMovementsController {
     @Param('id') id: string,
     @Body(new ZodValidationPipe(updateStockMovementBodySchema))
     updateStockMovementDto: UpdateStockMovementDto,
-    @CurrentUser() user: AuthUser,
   ) {
-    return this.stockMovementsService.update(
-      id,
-      updateStockMovementDto,
-      user.id,
-    );
+    return this.stockMovementsService.update(id, updateStockMovementDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string, @CurrentUser() user: AuthUser) {
-    return this.stockMovementsService.remove(id, user.id);
+  remove(@Param('id') id: string) {
+    return this.stockMovementsService.remove(id);
   }
 }
