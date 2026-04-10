@@ -8,9 +8,10 @@ import { ProfessionalServicesModule } from './professional-services/professional
 import { ProfessionalSchedulesModule } from './professional-schedules/professional-schedules.module';
 import { ExceptionDaysModule } from './exception-days/exception-days.module';
 import { ProductsModule } from './products/products.module';
+import { StockMovementsModule } from './stock-movements/stock-movements.module';
 
 @Module({
-  imports: [UsersModule, AuthModule, CompaniesModule, CompanyServicesModule, ProfessionalServicesModule, ProfessionalSchedulesModule, ExceptionDaysModule, ProductsModule],
+  imports: [UsersModule, AuthModule, CompaniesModule, CompanyServicesModule, ProfessionalServicesModule, ProfessionalSchedulesModule, ExceptionDaysModule, ProductsModule, StockMovementsModule],
   controllers: [],
   providers: [PrismaService],
 })

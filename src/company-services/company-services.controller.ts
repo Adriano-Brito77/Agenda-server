@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { JwtGuard } from 'src/auth/jwt/jwt-guard';
+import { JwtGuard } from '../auth/jwt/jwt-guard';
 import { CompanyServicesService } from './company-services.service';
 import { CompanyDto } from './dto/company.dto';
 import {

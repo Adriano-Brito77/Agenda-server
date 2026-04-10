@@ -1,13 +1,18 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
   Param,
-  UseGuards,
+  Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { ZodValidationPipe } from 'nestjs-zod';
+import type { AuthUser } from '../auth/jwt/current-user';
+import { CurrentUser } from '../auth/jwt/current-user';
+import { JwtGuard } from '../auth/jwt/jwt-guard';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
 import { CompaniesService } from './companies.service';
 import {
   createCompaniesBodySchema,
@@ -17,11 +22,6 @@ import {
   updateCompaniesBodySchema,
   UpdateCompanyDto,
 } from './dto/update-company.dto';
-import { ZodValidationPipe } from 'nestjs-zod';
-import { CurrentUser } from 'src/auth/jwt/current-user';
-import type { AuthUser } from 'src/auth/jwt/current-user';
-import { JwtGuard } from 'src/auth/jwt/jwt-guard';
-import { PaginationDto } from 'src/pagination/dto/pagination.dto';
 
 @Controller('companies')
 @UseGuards(JwtGuard)

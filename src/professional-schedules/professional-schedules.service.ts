@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PaginationDto } from 'src/pagination/dto/pagination.dto';
-import { PaginationService } from 'src/pagination/pagination.service';
-import { PrismaService } from 'src/prisma.service';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
+import { PaginationService } from '../pagination/pagination.service';
+import { PrismaService } from '../prisma.service';
 import { UsersService } from './../users/users.service';
 import { CreateProfessionalScheduleDto } from './dto/create-professional-schedule.dto';
 import { UpdateProfessionalScheduleDto } from './dto/update-professional-schedule.dto';

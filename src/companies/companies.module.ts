@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { CompaniesService } from './companies.service';
+import { PaginationService } from '../pagination/pagination.service';
+import { PrismaService } from '../prisma.service';
 import { CompaniesController } from './companies.controller';
-import { PrismaService } from 'src/prisma.service';
-import { PaginationService } from 'src/pagination/pagination.service';
+import { CompaniesService } from './companies.service';
 
 @Module({
   controllers: [CompaniesController],

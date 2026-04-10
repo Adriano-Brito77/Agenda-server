@@ -22,6 +22,18 @@ enum UserRole {
   professional
 }
 
+enum StockMovementType {
+  IN
+  OUT
+}
+
+enum ReferenceType {
+  PURCHASE   //IN
+  ENTRY      //IN
+  SALE       //OUT
+  STOCK_OUT  //OUT
+}
+
 model User {
   id String @id @default(uuid())
 
@@ -68,6 +80,7 @@ model Company {
   professional_schedules ProfessionalSchedule[]
   exception_days ExceptionDays[]
   products Products[]
+  
   
   
 
@@ -182,12 +195,55 @@ model Products {
   unit        String
 
   company_id  String 
-  company    Company @relation(fields: [company_id], references: [id]) 
+  company    Company @relation(fields: [company_id], references: [id])
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
 
+  stock_movements StockMovement[]
+  stock_balances stock_balance[]
+
+
   @@map("products")
+}
+
+model StockMovement {
+  id String @id @default(uuid())
+
+  type              StockMovementType
+  reference_type    ReferenceType
+  quantity Int
+  unit_price Float
+  total_value Float
+  movement_date DateTime
+
+  purchase_order_id String?
+
+  product_id String
+  product Products @relation(fields: [product_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  @@map("stock_movements")
+ 
+}
+
+model stock_balance{
+  id String @id @default(uuid())
+
+  quantity Int  
+
+  product_id String
+  product Products @relation(fields: [product_id], references: [id])
+
+  
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  @@map("stock_balance")
+
 }
 
 
