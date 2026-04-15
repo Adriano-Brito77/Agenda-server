@@ -5,7 +5,6 @@ import {
   Get,
   Param,
   Post,
-  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -16,10 +15,6 @@ import {
   createStockMovementBodySchema,
   CreateStockMovementDto,
 } from './dto/create-stock-movement.dto';
-import {
-  updateStockMovementBodySchema,
-  UpdateStockMovementDto,
-} from './dto/update-stock-movement.dto';
 import { StockMovementsService } from './stock-movements.service';
 
 @Controller('stock-movements')
@@ -36,22 +31,17 @@ export class StockMovementsController {
   }
 
   @Get('/company')
-  findAll(@Query() pagination: PaginationDto) {
-    return this.stockMovementsService.findAll(pagination);
+  findByAllStockBalance(@Query() pagination: PaginationDto) {
+    return this.stockMovementsService.findByAllStockBalance(pagination);
   }
 
+  @Get('product/:id')
+  findByProductId(@Param('id') id: string) {
+    return this.stockMovementsService.findByProductId(id);
+  }
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.stockMovementsService.findOne(id);
-  }
-
-  @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body(new ZodValidationPipe(updateStockMovementBodySchema))
-    updateStockMovementDto: UpdateStockMovementDto,
-  ) {
-    return this.stockMovementsService.update(id, updateStockMovementDto);
   }
 
   @Delete(':id')

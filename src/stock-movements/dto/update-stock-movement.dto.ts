@@ -8,7 +8,7 @@ const updateStockMovementBodySchema = z
     quantity: z.number(),
     unit_price: z.number(),
     total_value: z.number(),
-    moviment_date: z
+    movement_date: z
       .string({ message: 'A data é obrigatória' })
       .regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido')
       .transform((date) => new Date(date)),

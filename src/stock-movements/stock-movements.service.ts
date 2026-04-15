@@ -6,7 +6,6 @@ import {
 import { PaginationDto } from '../pagination/dto/pagination.dto';
 import { PrismaService } from '../prisma.service';
 import { CreateStockMovementDto } from './dto/create-stock-movement.dto';
-import { UpdateStockMovementDto } from './dto/update-stock-movement.dto';
 
 interface StockMovementResult {
   id: string;
@@ -25,6 +24,7 @@ export interface StockBalanceMovement {
 @Injectable()
 export class StockMovementsService {
   constructor(private readonly prisma: PrismaService) {}
+
   async create(createStockMovementDto: CreateStockMovementDto) {
     return this.prisma.$transaction(async (prisma) => {
       let productsNotFound: any[] = [];
@@ -110,7 +110,7 @@ export class StockMovementsService {
     });
   }
 
-  async findAll({
+  async findByAllStockBalance({
     page,
     pageSize,
     orderBy,
@@ -164,19 +164,92 @@ export class StockMovementsService {
       data: stock_balance,
       totalcount: stock_balance.length,
       totalpages: Math.ceil(stock_balance.length / pageSize),
-      currentpage: page,
+      currentpage: Number(page),
     };
   }
 
   async findOne(id: string) {
-    return `This action returns a #${id} stockMovement`;
+    /* valida se o movimento de estoque existe */
+    const movements = await this.prisma.stockMovements.findUnique({
+      where: { id: id },
+    });
+    if (!movements) {
+      throw new NotFoundException(`Movimento de estoque não encontrado`);
+    }
+    return movements;
   }
 
-  async update(id: string, updateStockMovementDto: UpdateStockMovementDto) {
-    return `This action updates a #${id} stockMovement`;
+  async findByProductId(product_id: string) {
+    /* valida se o produto existe */
+    const product = await this.prisma.products.findUnique({
+      where: { id: product_id },
+    });
+    if (!product) {
+      throw new NotFoundException(
+        `Produto com id ${product_id} não encontrado`,
+      );
+    }
+    const stockMovements = await this.prisma.stockMovements.findMany({
+      where: { product_id: product_id },
+    });
+    return stockMovements;
   }
 
   async remove(id: string) {
-    return `This action removes a #${id} stockMovement`;
+    await this.prisma.$transaction(async (prisma) => {
+      /* valida se o movimento de estoque existe */
+      const movement = await this.findOne(id);
+      console.log(movement);
+
+      /* valida se o saldo de estoque existe */
+      const stockBalance = await prisma.stock_balance.findUnique({
+        where: { product_id: movement.product_id },
+      });
+      if (!stockBalance) {
+        throw new NotFoundException(
+          `Saldo de estoque para o produto ${movement.product_id} não encontrado`,
+        );
+      }
+
+      if (movement.type === 'IN') {
+        if (movement.quantity > stockBalance.quantity) {
+          throw new BadRequestException(
+            `Não é possível remover o movimento de entrada, pois a quantidade em estoque é menor que a quantidade do movimento quantiade em estoque ${stockBalance.quantity} é menor que a quantidade do movimento ${movement.quantity}`,
+          );
+        }
+        if (movement.quantity === stockBalance.quantity) {
+          /* remove o saldo de estoque do produto caso a quantidade do movimento seja igual a quantidade em estoque */
+          await prisma.stock_balance.delete({
+            where: { product_id: movement.product_id },
+          });
+        } else {
+          /* atualiza o estoque do produto subtraindo a quantidade do movimento de entrada */
+          await prisma.stock_balance.update({
+            where: { product_id: movement.product_id },
+            data: {
+              quantity: {
+                decrement: movement.quantity,
+              },
+            },
+          });
+        }
+      }
+
+      if (movement.type === 'OUT') {
+        /* atualiza o estoque do produto somando a quantidade do movimento de saída */
+        await prisma.stock_balance.update({
+          where: { product_id: movement.product_id },
+          data: {
+            quantity: {
+              increment: movement.quantity,
+            },
+          },
+        });
+      }
+      /* remove o movimento de estoque do banco de dados */
+      await prisma.stockMovements.delete({
+        where: { id: id },
+      });
+    });
   }
 }
