@@ -34,6 +34,13 @@ enum ReferenceType {
   STOCK_OUT  //OUT
 }
 
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
+}
+
 model User {
   id String @id @default(uuid())
 
@@ -80,6 +87,7 @@ model Company {
   professional_schedules ProfessionalSchedule[]
   exception_days ExceptionDays[]
   products Products[]
+  purchase_orders PurchaseOrder[]
   
   
   
@@ -201,7 +209,8 @@ model Products {
   updated_at DateTime @updatedAt  
 
   stock_movements StockMovements[]
-  stock_balances stock_balance[]
+  stock_balances StockBalance[]
+  order_items OrderItem[]
 
 
   @@map("products")
@@ -229,7 +238,7 @@ model StockMovements {
  
 }
 
-model stock_balance{
+model StockBalance{
   id String @id @default(uuid())
 
   quantity Int  
@@ -242,10 +251,50 @@ model stock_balance{
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
 
-  @@map("stock_balance")
+  @@map("stock_balances")
 
 }
 
+model PurchaseOrder {
+  id String @id @default(uuid())
 
+  company_id String
+  company Company @relation(fields: [company_id], references: [id])
 
+  order_amount Float
+  order_date DateTime
+  requester_name String
 
+  status Status
+
+  payment_method String
+  pickup_date DateTime?
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  order_items OrderItem[]
+
+  @@map("purchase_orders")
+
+}
+
+model OrderItem {
+  id String @id @default(uuid())
+
+  purchase_order_id String
+  purchase_order PurchaseOrder @relation(fields: [purchase_order_id], references: [id])
+
+  product_id String
+  product Products @relation(fields: [product_id], references: [id])
+
+  name String
+  quantity Int
+  unit_price Float
+  total_value Float
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  @@map("order_items")
+}

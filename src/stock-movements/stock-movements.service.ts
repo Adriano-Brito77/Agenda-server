@@ -62,13 +62,13 @@ export class StockMovementsService {
       /* atualiza o estoque dos produtos */
       for (const movement of createStockMovementDto) {
         /* verifica se ja existe um movimento para o produto */
-        const stockExists = await prisma.stock_balance.findFirst({
+        const stockExists = await prisma.stockBalance.findFirst({
           where: { product_id: movement.product_id },
         });
         /* caso exista um movimento para o produto, atualiza a quantidade */
         if (stockExists) {
           if (movement.type === 'IN') {
-            await prisma.stock_balance.update({
+            await prisma.stockBalance.update({
               where: { product_id: movement.product_id },
               data: {
                 quantity: stockExists.quantity + movement.quantity,
@@ -81,7 +81,7 @@ export class StockMovementsService {
                 `Quantidade insuficiente em estoque para saida do produto ${movement.product_id}`,
               );
             }
-            await prisma.stock_balance.update({
+            await prisma.stockBalance.update({
               where: { product_id: movement.product_id },
               data: {
                 quantity: stockExists.quantity - movement.quantity,
@@ -99,7 +99,7 @@ export class StockMovementsService {
             );
           }
           /* cria um novo movimento de estoque para o produto */
-          await prisma.stock_balance.create({
+          await prisma.stockBalance.create({
             data: {
               product_id: movement.product_id,
               quantity: movement.quantity,
@@ -202,7 +202,7 @@ export class StockMovementsService {
       console.log(movement);
 
       /* valida se o saldo de estoque existe */
-      const stockBalance = await prisma.stock_balance.findUnique({
+      const stockBalance = await prisma.stockBalance.findUnique({
         where: { product_id: movement.product_id },
       });
       if (!stockBalance) {
@@ -219,12 +219,12 @@ export class StockMovementsService {
         }
         if (movement.quantity === stockBalance.quantity) {
           /* remove o saldo de estoque do produto caso a quantidade do movimento seja igual a quantidade em estoque */
-          await prisma.stock_balance.delete({
+          await prisma.stockBalance.delete({
             where: { product_id: movement.product_id },
           });
         } else {
           /* atualiza o estoque do produto subtraindo a quantidade do movimento de entrada */
-          await prisma.stock_balance.update({
+          await prisma.stockBalance.update({
             where: { product_id: movement.product_id },
             data: {
               quantity: {
@@ -237,7 +237,7 @@ export class StockMovementsService {
 
       if (movement.type === 'OUT') {
         /* atualiza o estoque do produto somando a quantidade do movimento de saída */
-        await prisma.stock_balance.update({
+        await prisma.stockBalance.update({
           where: { product_id: movement.product_id },
           data: {
             quantity: {
