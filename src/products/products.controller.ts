@@ -10,8 +10,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { JwtGuard } from 'src/auth/jwt/jwt-guard';
-import { PaginationDto } from 'src/pagination/dto/pagination.dto';
+import { JwtGuard } from '../auth/jwt/jwt-guard';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
 import {
   createProductBodySchema,
   CreateProductDto,

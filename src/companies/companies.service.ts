@@ -3,11 +3,11 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
+import { PaginationService } from '../pagination/pagination.service';
+import { PrismaService } from '../prisma.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
-import { PrismaService } from 'src/prisma.service';
-import { PaginationDto } from 'src/pagination/dto/pagination.dto';
-import { PaginationService } from 'src/pagination/pagination.service';
 
 @Injectable()
 export class CompaniesService {
