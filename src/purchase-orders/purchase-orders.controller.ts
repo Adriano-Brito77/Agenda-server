@@ -1,20 +1,23 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
-  UseGuards,
+  Get,
+  Param,
+  Post,
+  Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { PurchaseOrdersService } from './purchase-orders.service';
-import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
-import { UpdatePurchaseOrderDto } from './dto/update-purchase-order.dto';
-import { JwtGuard } from '../auth/jwt/jwt-guard';
 import { ZodValidationPipe } from 'nestjs-zod';
+import { JwtGuard } from '../auth/jwt/jwt-guard';
 import { PaginationDto } from '../pagination/dto/pagination.dto';
+import { CreatePurchaseOrderDto } from './dto/create-purchase-order.dto';
+import {
+  updatePurchaseOrderBodySchema,
+  UpdatePurchaseOrderDto,
+} from './dto/update-purchase-order.dto';
+import { PurchaseOrdersService } from './purchase-orders.service';
 
 @Controller('purchase-orders')
 @UseGuards(JwtGuard)
@@ -39,10 +42,11 @@ export class PurchaseOrdersController {
     return this.purchaseOrdersService.findOne(id);
   }
 
-  @Patch(':id')
+  @Put(':id')
   update(
     @Param('id') id: string,
-    @Body() updatePurchaseOrderDto: UpdatePurchaseOrderDto,
+    @Body(new ZodValidationPipe(updatePurchaseOrderBodySchema))
+    updatePurchaseOrderDto: UpdatePurchaseOrderDto,
   ) {
     return this.purchaseOrdersService.update(id, updatePurchaseOrderDto);
   }

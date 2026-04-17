@@ -25,4 +25,4 @@ class UpdatePurchaseOrderDto extends createZodDto(
   updatePurchaseOrderBodySchema,
 ) {}
 
-export { UpdatePurchaseOrderDto, updatePurchaseOrderBodySchema };
+export { updatePurchaseOrderBodySchema, UpdatePurchaseOrderDto };
