@@ -27,6 +27,8 @@ export class PurchaseOrdersService {
     itens,
   }: CreatePurchaseOrderDto) {
     return this.prisma.$transaction(async (prisma) => {
+      let productsNotFound: any[] = [];
+      /* valida se a empresa existe */
       const companyExists = await prisma.company.findUnique({
         where: { id: company_id },
       });
@@ -34,14 +36,23 @@ export class PurchaseOrdersService {
         throw new NotFoundException(`Empresa não encontrada`);
       }
 
-      const itensExists = await prisma.products.findMany({
-        where: {
-          id: { in: itens.map((item) => item.product_id) },
-        },
-      });
+      /* valida se o produto existe*/
+      for (const item of itens) {
+        const itensExists = await prisma.products.findUnique({
+          where: {
+            id: item.product_id,
+          },
+        });
 
-      if (itensExists.length !== itens.length) {
-        throw new NotFoundException(`Um ou mais produtos não encontrados`);
+        if (!itensExists) {
+          productsNotFound.push(item.product_id);
+        }
+      }
+
+      if (productsNotFound.length > 0) {
+        throw new NotFoundException(
+          `Produtos não encontrados: ${productsNotFound.join(', ')}`,
+        );
       }
 
       const purchaseOrder = await prisma.purchaseOrder.create({
@@ -144,18 +155,27 @@ export class PurchaseOrdersService {
     }: UpdatePurchaseOrderDto,
   ) {
     return this.prisma.$transaction(async (prisma) => {
+      let productsNotFound: any[] = [];
       /* valida se o pedido de compra existe */
       await this.findOne(id);
 
       /* valida se o produto existe*/
-      const itensExists = await prisma.products.findMany({
-        where: {
-          id: { in: itens.map((item) => item.product_id) },
-        },
-      });
+      for (const item of itens) {
+        const itensExists = await prisma.products.findUnique({
+          where: {
+            id: item.product_id,
+          },
+        });
 
-      if (itensExists.length !== itens.length) {
-        throw new NotFoundException(`Um ou mais produtos não encontrados`);
+        if (!itensExists) {
+          productsNotFound.push(item.product_id);
+        }
+      }
+
+      if (productsNotFound.length > 0) {
+        throw new NotFoundException(
+          `Produtos não encontrados: ${productsNotFound.join(', ')}`,
+        );
       }
 
       const purchaseOrder = await prisma.purchaseOrder.update({
