@@ -36,8 +36,8 @@ export class ProfessionalServicesService {
     }
 
     /* valida se o profissional existe*/
-    const professionalExists = await this.prisma.user.findUnique({
-      where: { id: professional_id, role: 'professional' },
+    const professionalExists = await this.prisma.companyUser.findUnique({
+      where: { id: professional_id, company_id },
     });
     if (!professionalExists) {
       throw new NotFoundException('Profissional não encontrado');
@@ -135,8 +135,8 @@ export class ProfessionalServicesService {
     }
 
     /* valida se o profissional existe*/
-    const professionalExists = await this.prisma.user.findUnique({
-      where: { id: professional_id, role: 'professional' },
+    const professionalExists = await this.prisma.companyUser.findUnique({
+      where: { id: professional_id, company_id },
     });
     if (!professionalExists) {
       throw new NotFoundException('Profissional não encontrado');

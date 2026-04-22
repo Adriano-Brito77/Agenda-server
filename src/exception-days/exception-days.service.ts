@@ -19,13 +19,13 @@ export class ExceptionDaysService {
     start_time,
     end_time,
   }: CreateExceptionDayDto) {
-    /* valida se o usuario existe*/
+    /* valida se o profissional existe*/
     if (professional_id) {
-      const userAlreadyExists = await this.prisma.user.findUnique({
-        where: { id: professional_id, company_id, role: 'professional' },
+      const userAlreadyExists = await this.prisma.companyUser.findUnique({
+        where: { id: professional_id, company_id },
       });
       if (!userAlreadyExists) {
-        throw new NotFoundException('Usuário não encontrado');
+        throw new NotFoundException('Profissional não encontrado');
       }
     }
     /* valida se a empresa existe */
@@ -127,13 +127,14 @@ export class ExceptionDaysService {
   ) {
     await this.findOne(id);
 
-    /* valida se o usuario existe*/
+    /* valida se o profissional existe*/
     if (professional_id) {
-      const userAlreadyExists = await this.prisma.user.findUnique({
-        where: { id: professional_id, company_id, role: 'professional' },
-      });
-      if (!userAlreadyExists) {
-        throw new NotFoundException('Usuário não encontrado');
+      const professionalAlreadyExists =
+        await this.prisma.companyUser.findUnique({
+          where: { id: professional_id, company_id },
+        });
+      if (!professionalAlreadyExists) {
+        throw new NotFoundException('Profissional não encontrado');
       }
     }
     /* valida se a empresa existe */

@@ -10,6 +10,9 @@ const updateCompaniesBodySchema = z.object({
   start_time: z.string(),
   end_time: z.string(),
   address: z.string(),
+  cep: z.string(),
+  number: z.string(),
+  complement: z.string(),
 });
 
 class UpdateCompanyDto extends createZodDto(updateCompaniesBodySchema) {}

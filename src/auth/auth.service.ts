@@ -14,8 +14,6 @@ import 'dotenv/config';
 
 import { PrismaService } from '../prisma.service';
 import { UsersService } from '../users/users.service';
-import { CreateAuthAdminDto } from './dto/create-auth-admin.dto';
-import { CreateAuthProfessionalDto } from './dto/create-auth-professional.dto';
 
 @Injectable()
 export class AuthService {
@@ -26,119 +24,72 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async create({ cpf, password }: CreateAuthDto) {
-    /* valida se o CPF existe */
-    const cpfExists = await this.prisma.user.findFirst({
+  async login({ cpfemail, password, role }: CreateAuthDto) {
+    let rolePermission: ('USER' | 'BUSINESS' | 'PROFESSIONAL')[] = ['USER'];
+    let company: string[] = [];
+    /* valida se o CPF ou email existe */
+    const userExists = await this.prisma.user.findFirst({
       where: {
-        cpf,
-        role: 'user',
+        OR: [{ cpf: cpfemail }, { email: cpfemail }],
       },
     });
 
-    if (!cpfExists) {
-      throw new UnauthorizedException('CPF ou senha inválidos');
+    if (!userExists) {
+      throw new UnauthorizedException('CPF/e-mail ou senha inválidos');
+    }
+
+    const companyUser = await this.prisma.companyUser.findFirst({
+      where: {
+        user_id: userExists.id,
+      },
+    });
+
+    companyUser ? rolePermission.push('PROFESSIONAL') : null;
+
+    if (role === 'PROFESSIONAL' && !companyUser) {
+      throw new UnauthorizedException('Usuário não é um profissional');
+    }
+
+    const busynessUser = await this.prisma.company.findMany({
+      where: {
+        creator_id: userExists.id,
+      },
+    });
+
+    busynessUser.length > 0
+      ? company.push(...busynessUser.map((c) => c.id))
+      : null;
+    busynessUser ? rolePermission.push('BUSINESS') : null;
+
+    if (role === 'BUSINESS' && !busynessUser) {
+      throw new UnauthorizedException('Usuário não é empresarial');
     }
 
     /* valida se a senha está correta */
-    const passwordMatch = await compare(password, cpfExists.password_hash);
+    const passwordMatch = await compare(password, userExists.password_hash);
 
     if (!passwordMatch) {
-      throw new UnauthorizedException('CPF ou senha inválidos');
+      throw new UnauthorizedException('CPF/e-mail ou senha inválidos');
     }
 
     /* gera o token JWT */
     const token = this.jwtService.sign({
-      sub: cpfExists.id,
-      email: cpfExists.email,
-      role: cpfExists.role,
+      sub: userExists.id,
+      email: userExists.email,
     });
 
     return {
       token,
       user: {
-        id: cpfExists.id,
-        name: cpfExists.name,
-        email: cpfExists.email,
-        cpf: cpfExists.cpf,
-        role: cpfExists.role,
-      },
-    };
-  }
-
-  async createProfessional({ email, password }: CreateAuthProfessionalDto) {
-    /* valida se o email existe */
-    const emailExists = await this.prisma.user.findFirst({
-      where: {
-        email,
-        role: 'professional',
-      },
-    });
-
-    if (!emailExists) {
-      throw new UnauthorizedException('Email ou senha inválidos');
-    }
-
-    /* valida se a senha está correta */
-    const passwordMatch = await compare(password, emailExists.password_hash);
-
-    if (!passwordMatch) {
-      throw new UnauthorizedException('Email ou senha inválidos');
-    }
-
-    /* gera o token JWT */
-    const token = this.jwtService.sign({
-      sub: emailExists.id,
-      email: emailExists.email,
-      role: emailExists.role,
-    });
-
-    return {
-      token,
-      user: {
-        id: emailExists.id,
-        name: emailExists.name,
-        email: emailExists.email,
-        cpf: emailExists.cpf,
-        role: emailExists.role,
-      },
-    };
-  }
-
-  async createAdmin({ email, password }: CreateAuthAdminDto) {
-    /* valida se o email existe */
-    const emailExists = await this.prisma.user.findFirst({
-      where: {
-        email,
-        role: 'admin',
-      },
-    });
-
-    if (!emailExists) {
-      throw new UnauthorizedException('Email ou senha inválidos');
-    }
-
-    /* valida se a senha está correta */
-    const passwordMatch = await compare(password, emailExists.password_hash);
-
-    if (!passwordMatch) {
-      throw new UnauthorizedException('Email ou senha inválidos');
-    }
-
-    /* gera o token JWT */
-    const token = this.jwtService.sign({
-      sub: emailExists.id,
-      email: emailExists.email,
-      role: emailExists.role,
-    });
-
-    return {
-      token,
-      user: {
-        id: emailExists.id,
-        name: emailExists.name,
-        email: emailExists.email,
-        cpf: emailExists.cpf,
-        role: emailExists.role,
+        id: userExists.id,
+        name: userExists.name,
+        email: userExists.email,
+        cpf: userExists.cpf,
+        ...(role === 'BUSINESS' && { companies: company }),
+        ...(role === 'PROFESSIONAL' && {
+          company_link: companyUser?.company_id,
+        }),
+        role: rolePermission,
       },
     };
   }

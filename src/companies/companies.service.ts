@@ -26,6 +26,9 @@ export class CompaniesService {
       open_date,
       phone_number,
       address,
+      cep,
+      number,
+      complement,
     }: CreateCompanyDto,
     user_id: string,
   ) {
@@ -56,7 +59,10 @@ export class CompaniesService {
         open_date,
         phone_number,
         address,
-        user_id,
+        creator_id: user_id,
+        cep,
+        number,
+        complement,
       },
     });
   }
@@ -112,6 +118,9 @@ export class CompaniesService {
       open_date,
       phone_number,
       address,
+      cep,
+      number,
+      complement,
     }: UpdateCompanyDto,
   ) {
     /* valida se o id existe*/
@@ -145,6 +154,9 @@ export class CompaniesService {
         open_date,
         phone_number,
         address,
+        cep,
+        number,
+        complement,
       },
     });
   }

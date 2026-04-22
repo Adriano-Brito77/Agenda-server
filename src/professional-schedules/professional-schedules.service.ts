@@ -37,30 +37,21 @@ export class ProfessionalSchedulesService {
     }
 
     /* Cria o usuário para login */
-    await this.usersService.create({
+    const professional = await this.usersService.create({
       name,
       email,
       cpf,
-      role: 'professional',
+      role: 'PROFESSIONAL',
       password,
       confirmPassword,
-      company_id,
+      company_id: company.id,
     });
-
-    /* busca o profissional criado */
-    const professional = await this.prisma.user.findFirst({
-      where: { email: email, role: 'professional', company_id: company_id },
-    });
-
-    if (!professional) {
-      throw new NotFoundException('Usuário não criado');
-    }
 
     /* Cria o profissional com seus horários */
     await this.prisma.professionalSchedule.create({
       data: {
         professional_id: professional.id,
-        company_id,
+        company_id: company.id,
         hire_date,
         start_time,
         end_time,
@@ -187,7 +178,7 @@ export class ProfessionalSchedulesService {
       name,
       email,
       cpf,
-      role: 'professional',
+      role: 'PROFESSIONAL',
       password,
       confirmPassword,
       company_id,

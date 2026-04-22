@@ -10,9 +10,10 @@ import { ExceptionDaysModule } from './exception-days/exception-days.module';
 import { ProductsModule } from './products/products.module';
 import { StockMovementsModule } from './stock-movements/stock-movements.module';
 import { PurchaseOrdersModule } from './purchase-orders/purchase-orders.module';
+import { SchedulesModule } from './schedules/schedules.module';
 
 @Module({
-  imports: [UsersModule, AuthModule, CompaniesModule, CompanyServicesModule, ProfessionalServicesModule, ProfessionalSchedulesModule, ExceptionDaysModule, ProductsModule, StockMovementsModule, PurchaseOrdersModule],
+  imports: [UsersModule, AuthModule, CompaniesModule, CompanyServicesModule, ProfessionalServicesModule, ProfessionalSchedulesModule, ExceptionDaysModule, ProductsModule, StockMovementsModule, PurchaseOrdersModule, SchedulesModule],
   controllers: [],
   providers: [PrismaService],
 })

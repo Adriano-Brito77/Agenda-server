@@ -14,14 +14,6 @@ datasource db {
   provider = "postgresql"
 }
 
-
-
-enum UserRole {
-  user
-  admin
-  professional
-}
-
 enum StockMovementType {
   IN
   OUT
@@ -41,13 +33,19 @@ enum Status {
   CANCELED
 }
 
+enum StatusSchedule {
+  APPROVED
+  COMPLETED
+  CANCELED  
+  PENDING
+} 
+
 model User {
   id String @id @default(uuid())
 
   name                  String
-  email                 String
-  cpf                   String
-  role UserRole
+  email                 String @unique
+  cpf                   String @unique
   birth_day             DateTime?
   password_hash         String
   notification_time     Int?
@@ -58,8 +56,16 @@ model User {
   professional_services ProfessionalService[]
   professional_schedules ProfessionalSchedule[]
   work_days WorkDays[]
+  companies CompanyUser[]
+  company Company[]
+  exception_days ExceptionDays[]
+ 
+ 
 
-  
+  schedules_created         Schedules[] @relation("ScheduleCreator")
+  schedules_as_client       Schedules[] @relation("ScheduleClient")
+  schedules_as_professional Schedules[] @relation("ScheduleProfessional")
+
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
@@ -79,8 +85,12 @@ model Company {
   start_time String
   end_time   String
   address    String
+  cep       String
+  number    String
+  complement String?
 
-  user_id     String 
+  creator_id     String 
+  creator        User @relation(fields: [creator_id], references: [id])
 
   company_services CompanyService[]
   professional_services ProfessionalService[]
@@ -88,6 +98,8 @@ model Company {
   exception_days ExceptionDays[]
   products Products[]
   purchase_orders PurchaseOrder[]
+  schedules Schedules[]
+  company_users CompanyUser[]
   
   
   
@@ -96,6 +108,23 @@ model Company {
   updated_at DateTime @updatedAt  
 
   @@map("companies")
+}
+
+model CompanyUser{
+  id String @id @default(uuid())
+
+  company_id String
+  company Company @relation(fields: [company_id], references: [id])
+
+  user_id String
+  user User @relation(fields: [user_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+  @@map("company_users")
+
+
 }
 
 
@@ -133,8 +162,11 @@ model ProfessionalService {
   professional_id      String 
   professional         User @relation(fields: [professional_id], references: [id]) 
 
+
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
+
+  schedules Schedules[]
 
   @@map("professional_services")
 }
@@ -180,8 +212,9 @@ model ExceptionDays {
   date DateTime
   start_time String?
   end_time String?
-  professional_id String?
-  
+
+  professional_id String? 
+  professional User? @relation(fields: [professional_id], references: [id])
 
   company_id String
   company Company @relation(fields: [company_id], references: [id])
@@ -297,4 +330,44 @@ model OrderItem {
   updated_at DateTime @updatedAt  
 
   @@map("order_items")
+}
+
+
+model Schedules{
+  id String @id @default(uuid())
+
+  date DateTime
+  start_time DateTime
+  end_time DateTime
+
+  is_paid Boolean
+  notification Boolean
+  status Status
+
+  notes String?
+
+
+  user_id String
+  user User @relation("ScheduleCreator", fields: [user_id], references: [id])
+
+  client_id String
+  clients User @relation("ScheduleClient", fields: [client_id], references: [id])
+
+  professional_id String
+  professionals User @relation("ScheduleProfessional", fields: [professional_id], references: [id])
+
+  professional_service_id String
+  professional_services ProfessionalService @relation(fields: [professional_service_id], references: [id])
+
+  company_id String 
+  companies Company @relation(fields: [company_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
+
+
+  @@index([professional_id, start_time, end_time])
+  @@index([company_id, start_time])
+
+  @@map("schedules")
 }

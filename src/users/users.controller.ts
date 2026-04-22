@@ -25,11 +25,6 @@ export class UsersController {
     return this.usersService.create(createUserDto);
   }
 
-  @Get()
-  @UseGuards(JwtGuard)
-  findAll() {
-    return this.usersService.findAll();
-  }
   @Get(':id')
   @UseGuards(JwtGuard)
   findOne(@Param('id') id: string) {

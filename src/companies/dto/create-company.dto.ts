@@ -10,10 +10,13 @@ const createCompaniesBodySchema = z.object({
   start_time: z.string(),
   end_time: z.string(),
   address: z.string(),
+  cep: z.string(),
+  number: z.string(),
+  complement: z.string(),
 });
 
 class CreateCompanyDto extends createZodDto(createCompaniesBodySchema) {
-  user_id: string;
+  creator_id: string;
 }
 
 export { createCompaniesBodySchema, CreateCompanyDto };
