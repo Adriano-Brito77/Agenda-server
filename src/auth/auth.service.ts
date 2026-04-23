@@ -27,6 +27,7 @@ export class AuthService {
   async login({ cpfemail, password, role }: CreateAuthDto) {
     let rolePermission: ('USER' | 'BUSINESS' | 'PROFESSIONAL')[] = ['USER'];
     let company: string[] = [];
+    let companyLink: string[] = [];
     /* valida se o CPF ou email existe */
     const userExists = await this.prisma.user.findFirst({
       where: {
@@ -38,15 +39,16 @@ export class AuthService {
       throw new UnauthorizedException('CPF/e-mail ou senha inválidos');
     }
 
-    const companyUser = await this.prisma.companyUser.findFirst({
+    const companyUser = await this.prisma.companyUser.findMany({
       where: {
         user_id: userExists.id,
       },
     });
 
-    companyUser ? rolePermission.push('PROFESSIONAL') : null;
+    companyUser.length > 0 ? rolePermission.push('PROFESSIONAL') : null;
+    companyLink.push(...companyUser.map((c) => c.company_id));
 
-    if (role === 'PROFESSIONAL' && !companyUser) {
+    if (role === 'PROFESSIONAL' && companyUser.length === 0) {
       throw new UnauthorizedException('Usuário não é um profissional');
     }
 
@@ -59,7 +61,7 @@ export class AuthService {
     busynessUser.length > 0
       ? company.push(...busynessUser.map((c) => c.id))
       : null;
-    busynessUser ? rolePermission.push('BUSINESS') : null;
+    busynessUser.length > 0 ? rolePermission.push('BUSINESS') : null;
 
     if (role === 'BUSINESS' && !busynessUser) {
       throw new UnauthorizedException('Usuário não é empresarial');
@@ -87,8 +89,9 @@ export class AuthService {
         cpf: userExists.cpf,
         ...(role === 'BUSINESS' && { companies: company }),
         ...(role === 'PROFESSIONAL' && {
-          company_link: companyUser?.company_id,
+          company_link: companyUser.map((c) => c.company_id),
         }),
+        current_role: role,
         role: rolePermission,
       },
     };

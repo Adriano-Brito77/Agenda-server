@@ -25,6 +25,7 @@ const createUserBodySchema = z
     company: z
       .object({
         name: z.string().min(1, 'Company name is required'),
+        email: z.email(),
         cnpj: z.string().length(14, 'CNPJ must be exactly 14 characters long'),
         open_date: z.coerce.date(),
         phone_number: z.string().min(10).max(15),

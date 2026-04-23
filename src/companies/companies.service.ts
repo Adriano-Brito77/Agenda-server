@@ -49,7 +49,7 @@ export class CompaniesService {
     }
 
     /* cria uma empresa no banco de dados */
-    await this.prisma.company.create({
+    const company = await this.prisma.company.create({
       data: {
         name,
         cnpj,
@@ -65,6 +65,7 @@ export class CompaniesService {
         complement,
       },
     });
+    return company;
   }
 
   async findAll({ page, pageSize, orderBy, search }: PaginationDto) {

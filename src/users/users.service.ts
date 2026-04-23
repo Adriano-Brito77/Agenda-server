@@ -107,23 +107,40 @@ export class UsersService {
     }
 
     if (role === 'BUSINESS' && company) {
-      await this.company.create(
-        {
-          name: company.name,
-          email: company.cnpj,
-          cnpj: company.cnpj,
-          open_date: company.open_date,
-          phone_number: company.phone_number,
-          start_time: company.start_time,
-          end_time: company.end_time,
-          address: company.address,
-          cep: company.cep,
-          number: company.number,
-          complement: company.complement,
-          creator_id: user.id,
-        },
-        user.id,
-      );
+      await this.prisma.$transaction(async (prisma) => {
+        const myCompany = await this.company.create(
+          {
+            name: company.name,
+            email: company.email,
+            cnpj: company.cnpj,
+            open_date: company.open_date,
+            phone_number: company.phone_number,
+            start_time: company.start_time,
+            end_time: company.end_time,
+            address: company.address,
+            cep: company.cep,
+            number: company.number,
+            complement: company.complement,
+            creator_id: user.id,
+          },
+          user.id,
+        );
+
+        await this.company.findOne(myCompany.id);
+
+        const userAlreadyExists = await prisma.companyUser.findFirst({
+          where: { user_id: user.id, company_id: myCompany.id },
+        });
+
+        if (!userAlreadyExists) {
+          await prisma.companyUser.create({
+            data: {
+              user_id: user.id,
+              company_id: myCompany.id,
+            },
+          });
+        }
+      });
     }
 
     const { password_hash, ...userWithoutPassword } = user;
