@@ -21,6 +21,7 @@ import {
   UpdateProfessionalScheduleDto,
 } from './dto/update-professional-schedule.dto';
 import { ProfessionalSchedulesService } from './professional-schedules.service';
+import { CurrentUser, type AuthUser } from '../auth/jwt/current-user';
 
 @Controller('professional-schedules')
 @UseGuards(JwtGuard)
@@ -33,9 +34,11 @@ export class ProfessionalSchedulesController {
   create(
     @Body(new ZodValidationPipe(createProfessionalScheduleBodySchema))
     createProfessionalScheduleDto: CreateProfessionalScheduleDto,
+    @CurrentUser() user: AuthUser,
   ) {
     return this.professionalSchedulesService.create(
       createProfessionalScheduleDto,
+      user.id,
     );
   }
 

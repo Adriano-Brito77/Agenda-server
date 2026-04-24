@@ -14,20 +14,23 @@ export class ProfessionalSchedulesService {
     private readonly paginationService: PaginationService,
   ) {}
 
-  async create({
-    name,
-    email,
-    cpf,
-    password,
-    confirmPassword,
-    hire_date,
-    company_id,
-    day_of_week,
-    start_time,
-    end_time,
-    break_start_time,
-    break_end_time,
-  }: CreateProfessionalScheduleDto) {
+  async create(
+    {
+      name,
+      email,
+      cpf,
+      password,
+      confirmPassword,
+      hire_date,
+      company_id,
+      day_of_week,
+      start_time,
+      end_time,
+      break_start_time,
+      break_end_time,
+    }: CreateProfessionalScheduleDto,
+    user_id: string,
+  ) {
     /* valida se a empresa existe */
     const company = await this.prisma.company.findUnique({
       where: { id: company_id },
@@ -178,7 +181,6 @@ export class ProfessionalSchedulesService {
       name,
       email,
       cpf,
-      role: 'PROFESSIONAL',
       password,
       confirmPassword,
       company_id,

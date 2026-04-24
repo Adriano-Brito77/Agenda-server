@@ -6,9 +6,6 @@ const updateUserBodySchema = z
     name: z.string().min(1, 'Name is required'),
     email: z.email(),
     cpf: z.string().length(11, 'CPF must be exactly 11 characters long'),
-    role: z.enum(['USER', 'ADMIN', 'PROFESSIONAL'], {
-      message: 'Role must be either "USER", "ADMIN", or "PROFESSIONAL"',
-    }),
     notification_time: z.number().optional(),
     company_id: z.string().optional().nullable(),
     phone_number: z.string().min(10).max(15).nullable().optional(),
@@ -24,14 +21,6 @@ const updateUserBodySchema = z
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Passwords do not match',
     path: ['confirmPassword'],
-  })
-  .superRefine((data, ctx) => {
-    if (data.role === 'PROFESSIONAL' && !data.company_id) {
-      ctx.addIssue({
-        code: 'custom',
-        message: 'Company ID is required for professionals',
-      });
-    }
   });
 
 class UpdateUserDto extends createZodDto(updateUserBodySchema) {}

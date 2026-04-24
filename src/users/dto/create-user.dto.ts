@@ -21,7 +21,6 @@ const createUserBodySchema = z
     confirmPassword: z.string().min(6, {
       message: 'Confirm password must be at least 6 characters long',
     }),
-
     company: z
       .object({
         name: z.string().min(1, 'Company name is required'),

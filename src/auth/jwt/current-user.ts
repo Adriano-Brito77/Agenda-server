@@ -17,6 +17,7 @@ export const CurrentUser = createParamDecorator(
       throw new Error('A variável de ambiente JWT_SECRET não está definida');
     }
 
+    console.log(request.headers);
     const tokenPayload = jwt.verify(
       request.headers.authorization.split('Bearer ')[1],
       jwtSecret,

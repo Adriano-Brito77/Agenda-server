@@ -56,11 +56,12 @@ model User {
   professional_services ProfessionalService[]
   professional_schedules ProfessionalSchedule[]
   work_days WorkDays[]
-  companies CompanyUser[]
+  
   company Company[]
   exception_days ExceptionDays[]
- 
- 
+
+  companies CompanyUser[]
+  company_user CompanyUser[] @relation("CompanyUserCreator")
 
   schedules_created         Schedules[] @relation("ScheduleCreator")
   schedules_as_client       Schedules[] @relation("ScheduleClient")
@@ -78,8 +79,8 @@ model Company {
   id String @id @default(uuid())
 
   name        String
-  email       String
-  cnpj        String  
+  email       String @unique
+  cnpj        String  @unique
   phone_number String
   open_date DateTime
   start_time String
@@ -116,10 +117,14 @@ model CompanyUser{
   company_id String
   company Company @relation(fields: [company_id], references: [id])
 
-  user_id String
-  user User @relation(fields: [user_id], references: [id])
+  professional_id String
+  professional User @relation(fields: [professional_id], references: [id])
+
+  creator_id String
+  creator User @relation("CompanyUserCreator", fields: [creator_id], references: [id])
 
   is_active Boolean @default(true)
+  
 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  

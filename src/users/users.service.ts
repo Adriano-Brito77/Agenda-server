@@ -9,13 +9,13 @@ import { PrismaService } from '../prisma.service';
 import { PaginationService } from './../pagination/pagination.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserActiveDto } from './dto/update-user-active.dto';
 
 export const userSelect = {
   id: true,
   name: true,
   email: true,
   cpf: true,
-  role: true,
   birth_day: true,
   notification_time: true,
   phone_number: true,
@@ -90,17 +90,18 @@ export class UsersService {
       }));
 
     if (role === 'PROFESSIONAL' && company_id) {
-      await this.company.findOne(company_id);
+      const company = await this.company.findOne(company_id);
 
       const userAlreadyExists = await this.prisma.companyUser.findFirst({
-        where: { user_id: user.id, company_id },
+        where: { professional_id: user.id, company_id },
       });
 
       if (!userAlreadyExists) {
         await this.prisma.companyUser.create({
           data: {
-            user_id: user.id,
+            professional_id: user.id,
             company_id,
+            creator_id: company.creator_id,
           },
         });
       }
@@ -108,8 +109,24 @@ export class UsersService {
 
     if (role === 'BUSINESS' && company) {
       await this.prisma.$transaction(async (prisma) => {
-        const myCompany = await this.company.create(
-          {
+        const companyCnpjAlreadyExists = await prisma.company.findUnique({
+          where: { cnpj: company.cnpj },
+        });
+
+        if (companyCnpjAlreadyExists) {
+          throw new ConflictException('Este CNPJ já está em uso');
+        }
+
+        const companyEmailAlreadyExists = await prisma.company.findUnique({
+          where: { email: company.email },
+        });
+
+        if (companyEmailAlreadyExists) {
+          throw new ConflictException('Este e-mail já está em uso');
+        }
+
+        const myCompany = await prisma.company.create({
+          data: {
             name: company.name,
             email: company.email,
             cnpj: company.cnpj,
@@ -123,20 +140,18 @@ export class UsersService {
             complement: company.complement,
             creator_id: user.id,
           },
-          user.id,
-        );
-
-        await this.company.findOne(myCompany.id);
+        });
 
         const userAlreadyExists = await prisma.companyUser.findFirst({
-          where: { user_id: user.id, company_id: myCompany.id },
+          where: { professional_id: user.id, company_id: myCompany.id },
         });
 
         if (!userAlreadyExists) {
           await prisma.companyUser.create({
             data: {
-              user_id: user.id,
+              professional_id: user.id,
               company_id: myCompany.id,
+              creator_id: user.id,
             },
           });
         }
@@ -160,6 +175,28 @@ export class UsersService {
     return userExist;
   }
 
+  async updateActive(id: string, user_Active: UpdateUserActiveDto) {
+    /* valida se o id existe*/
+    const user = await this.findOne(id);
+
+    /* valida se a empresa existe */
+    const linkCompanyUser = await this.prisma.companyUser.findFirst({
+      where: { professional_id: id, company_id: user_Active.company_id },
+    });
+
+    if (!linkCompanyUser) {
+      throw new NotFoundException(
+        'Vínculo do usuário com a empresa não encontrado',
+      );
+    }
+
+    /* ativa ou desativa o usuário */
+    await this.prisma.companyUser.update({
+      where: { id: linkCompanyUser.id },
+      data: { is_active: user_Active.active },
+    });
+  }
+
   async update(
     id: string,
     {
@@ -169,7 +206,6 @@ export class UsersService {
       password,
       confirmPassword,
       phone_number,
-      role,
       birth_day,
       company_id,
       notification_time,
@@ -207,21 +243,6 @@ export class UsersService {
     /* criptografa a senha para salvar no banco de dados */
     const passwordHash = await hash(password, 8);
 
-    /* valida se ja existe o vinculo de profissional com a empresa */
-    if (role === 'PROFESSIONAL' && company_id) {
-      const existingLink = await this.prisma.companyUser.findFirst({
-        where: { user_id: id, company_id },
-      });
-      if (!existingLink) {
-        await this.prisma.companyUser.create({
-          data: {
-            user_id: id,
-            company_id,
-          },
-        });
-      }
-    }
-
     /* atualiza os dados do usuário */
     await this.prisma.user.update({
       where: { id },
@@ -236,6 +257,23 @@ export class UsersService {
         notification_time,
         occupation,
       },
+    });
+  }
+
+  async removeCompanyUser(id: string) {
+    /* valida se o vinculo existe*/
+    const companyUser = await this.prisma.companyUser.findUnique({
+      where: { id },
+    });
+    if (!companyUser) {
+      throw new NotFoundException(
+        'Vínculo do usuário com a empresa não encontrado',
+      );
+    }
+
+    /* remove o vínculo do usuário com a empresa */
+    await this.prisma.companyUser.delete({
+      where: { id },
     });
   }
 }

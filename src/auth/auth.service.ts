@@ -41,7 +41,7 @@ export class AuthService {
 
     const companyUser = await this.prisma.companyUser.findMany({
       where: {
-        user_id: userExists.id,
+        professional_id: userExists.id,
       },
     });
 
