@@ -1,10 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
-import z, { number } from 'zod';
+import { start } from 'node:repl';
+import z from 'zod';
 
 const createSchedulesBodySchema = z.object({
   date: z.coerce.date(),
   start_time: z.string(),
-  end_time: z.string(),
   notes: z.string().optional(),
   is_paid: z.boolean(),
   notification: z.boolean(),

@@ -64,7 +64,6 @@ model User {
   company_user CompanyUser[] @relation("CompanyUserCreator")
 
   schedules_created         Schedules[] @relation("ScheduleCreator")
-  schedules_as_client       Schedules[] @relation("ScheduleClient")
   schedules_as_professional Schedules[] @relation("ScheduleProfessional")
 
 
@@ -156,6 +155,7 @@ model CompanyService {
 model ProfessionalService {
   id String @id @default(uuid())
 
+  
   value       Float
   description String
   duration    Int
@@ -343,13 +343,13 @@ model OrderItem {
 model Schedules{
   id String @id @default(uuid())
 
-  date DateTime
-  start_time DateTime
-  end_time DateTime
+  starts_at          DateTime
+  ends_at            DateTime
+  duration_in_minutes Int
 
   is_paid Boolean
   notification Boolean
-  status Status
+  status StatusSchedule
 
   notes String?
 
@@ -360,8 +360,8 @@ model Schedules{
   creator_id String
   creator User @relation("ScheduleCreator", fields: [creator_id], references: [id])
 
-  client_id String
-  client User @relation("ScheduleClient", fields: [client_id], references: [id])
+  client_id String?
+  
 
   professional_id String
   professional User @relation("ScheduleProfessional", fields: [professional_id], references: [id])
@@ -376,8 +376,19 @@ model Schedules{
   updated_at DateTime @updatedAt  
 
 
-  @@index([professional_id, start_time, end_time])
-  @@index([company_id, start_time])
+  @@index([professional_id, starts_at, ends_at])
+  @@index([company_id, starts_at])
 
   @@map("schedules")
+}
+
+model ScheduleServices{
+  id String @id @default(uuid()) 
+  schedule_id String
+  service_id String
+  name String
+  value Float
+  duration Int
+
+  @@map("scheduleservices")
 }
