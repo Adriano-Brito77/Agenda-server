@@ -29,16 +29,17 @@ export class ProfessionalServicesService {
 
     /* valida se o serviço da empresa existe*/
     const companyServiceExists = await this.prisma.companyService.findUnique({
-      where: { id: company_service_id },
+      where: { id: company_service_id, company_id },
     });
     if (!companyServiceExists) {
       throw new NotFoundException('Serviço da empresa não encontrado');
     }
 
     /* valida se o profissional existe*/
-    const professionalExists = await this.prisma.companyUser.findUnique({
-      where: { id: professional_id, company_id },
+    const professionalExists = await this.prisma.companyUser.findFirst({
+      where: { professional_id: professional_id, company_id: company_id },
     });
+
     if (!professionalExists) {
       throw new NotFoundException('Profissional não encontrado');
     }
@@ -128,15 +129,15 @@ export class ProfessionalServicesService {
 
     /* valida se o serviço da empresa existe*/
     const companyServiceExists = await this.prisma.companyService.findUnique({
-      where: { id: company_service_id },
+      where: { id: company_service_id, company_id },
     });
     if (!companyServiceExists) {
       throw new NotFoundException('Serviço da empresa não encontrado');
     }
 
     /* valida se o profissional existe*/
-    const professionalExists = await this.prisma.companyUser.findUnique({
-      where: { id: professional_id, company_id },
+    const professionalExists = await this.prisma.companyUser.findFirst({
+      where: { professional_id: professional_id, company_id },
     });
     if (!professionalExists) {
       throw new NotFoundException('Profissional não encontrado');

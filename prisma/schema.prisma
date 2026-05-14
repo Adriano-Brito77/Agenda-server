@@ -173,7 +173,10 @@ model ProfessionalService {
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
 
-  schedules Schedules[]
+
+ 
+  professional_id_schedules_services ScheduleServices[]
+ 
 
   @@map("professional_services")
 }
@@ -346,10 +349,11 @@ model Schedules{
   starts_at          DateTime
   ends_at            DateTime
   duration_in_minutes Int
+  value_total_services Float
 
-  is_paid Boolean
-  notification Boolean
-  status StatusSchedule
+  is_paid Boolean       @default(false)
+  notification Boolean  @default(false)
+  status StatusSchedule @default(PENDING)
 
   notes String?
 
@@ -366,14 +370,17 @@ model Schedules{
   professional_id String
   professional User @relation("ScheduleProfessional", fields: [professional_id], references: [id])
 
-  professional_service_id String
-  professional_service ProfessionalService @relation(fields: [professional_service_id], references: [id])
-
+ 
   company_id String 
   company Company @relation(fields: [company_id], references: [id])
 
+
+ 
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt  
+
+  schedules_services ScheduleServices[]
+  
 
 
   @@index([professional_id, starts_at, ends_at])
@@ -384,11 +391,19 @@ model Schedules{
 
 model ScheduleServices{
   id String @id @default(uuid()) 
-  schedule_id String
-  service_id String
+
   name String
   value Float
   duration Int
+
+  schedule_id String 
+  schedules Schedules @relation(fields: [schedule_id], references: [id])
+
+  service_id String
+  service_schedules ProfessionalService @relation(fields: [service_id], references: [id])
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt  
 
   @@map("scheduleservices")
 }

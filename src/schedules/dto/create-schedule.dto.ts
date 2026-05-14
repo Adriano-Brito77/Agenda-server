@@ -1,16 +1,10 @@
 import { createZodDto } from 'nestjs-zod';
-import { start } from 'node:repl';
 import z from 'zod';
 
 const createSchedulesBodySchema = z.object({
   date: z.coerce.date(),
-  start_time: z.string(),
+  start_time: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/),
   notes: z.string().optional(),
-  is_paid: z.boolean(),
-  notification: z.boolean(),
-  status: z.enum(['APPROVED', 'PENDING', 'COMPLETED', 'CANCELED'], {
-    message: 'Status must be one of: APPROVED, PENDING, COMPLETED, CANCELED',
-  }),
   client_name_external: z.string().optional(),
   client_email_external: z.string().optional(),
   number: z.string().min(1, { message: 'Number is required' }),
