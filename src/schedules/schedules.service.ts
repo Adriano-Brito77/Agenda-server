@@ -6,10 +6,16 @@ import {
 import { PrismaService } from '../prisma.service';
 import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { UpdateScheduleDto } from './dto/update-schedule.dto';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
+import { PaginationService } from '../pagination/pagination.service';
+import { userSelect } from '../users/users.service';
 
 @Injectable()
 export class SchedulesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly pagination: PaginationService,
+  ) {}
 
   async create(
     {
@@ -108,6 +114,99 @@ export class SchedulesService {
       endTime.setHours(endTime.getHours() + Math.floor(durationInMinutes / 60));
       endTime.setMinutes(endTime.getMinutes() + (durationInMinutes % 60));
 
+      let endTimewithHours = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
+
+      const breakProfessional = await prisma.professionalSchedule.findFirst({
+        where: {
+          professional_id: professional_id ? professional_id : user_id,
+          company_id: company_id,
+        },
+      });
+
+      if (
+        breakProfessional
+          ? start_time === breakProfessional.break_start_time &&
+            endTimewithHours === breakProfessional.break_end_time
+          : false
+      ) {
+        throw new BadRequestException(
+          'Nao é permitido agendar no horário de intervalo do profissional.',
+        );
+      }
+
+      if (
+        breakProfessional
+          ? start_time <= breakProfessional.break_start_time &&
+            endTimewithHours >= breakProfessional.break_end_time
+          : false
+      ) {
+        throw new BadRequestException(
+          'O horário de início ou término do agendamento conflita com o horário de intervalo do profissional.',
+        );
+      }
+
+      if (
+        breakProfessional
+          ? endTimewithHours > breakProfessional.break_start_time &&
+            breakProfessional.break_end_time < endTimewithHours
+          : false
+      ) {
+        throw new BadRequestException(
+          'O horário de final do agendamento conflita com o horário de intervalo do profissional.',
+        );
+      }
+
+      if (
+        breakProfessional
+          ? start_time > breakProfessional.break_start_time &&
+            breakProfessional.break_end_time < start_time
+          : false
+      ) {
+        throw new BadRequestException(
+          'O horário de início do agendamento conflita com o horário de intervalo do profissional.',
+        );
+      }
+
+      /* valida se há conflito de horários */
+      const conflictingSchedule = await prisma.schedules.findFirst({
+        where: {
+          professional_id: professional_id ? professional_id : user_id,
+          company_id: company_id,
+          starts_at: { lt: endTime },
+          ends_at: { gt: startTime },
+        },
+      });
+
+      if (conflictingSchedule) {
+        const existingStart = conflictingSchedule.starts_at;
+        const existingEnd = conflictingSchedule.ends_at;
+
+        let message = 'Horario do profissional conflita com outro agendamento.';
+
+        if (
+          existingStart.getTime() === startTime.getTime() &&
+          existingEnd.getTime() === endTime.getTime()
+        ) {
+          message = 'Já existe um agendamento exatamente nesse horário.';
+        }
+
+        if (startTime <= existingStart && endTime >= existingEnd) {
+          message =
+            'O intervalo informado engloba um agendamento já existente.';
+        }
+
+        if (existingStart <= startTime && existingEnd > startTime) {
+          message =
+            'O horário inicial informado conflita com outro agendamento.';
+        }
+
+        if (existingStart < endTime && existingEnd >= endTime) {
+          message = 'O horário final conflita com outro agendamento.';
+        }
+
+        throw new BadRequestException(message);
+      }
+
       /* criar um agendamento no banco de dados */
       const schedules = await prisma.schedules.create({
         data: {
@@ -139,17 +238,67 @@ export class SchedulesService {
     });
   }
 
-  findAll() {}
+  async findAll({
+    page,
+    pageSize,
+    orderBy,
+    search,
+    company_id,
+    professional_id,
+  }: PaginationDto) {
+    let where = {};
+    if (search) {
+      where = {
+        OR: [
+          { client_name_external: { contains: search, mode: 'insensitive' } },
+          { client_email_external: { contains: search, mode: 'insensitive' } },
+          { number: { contains: search, mode: 'insensitive' } },
+          { company_id: { contains: search, mode: 'insensitive' } },
+          { professional: { name: { contains: search, mode: 'insensitive' } } },
+        ],
+      };
+    }
 
-  findOne(id: number) {
+    if (company_id) {
+      where = { ...where, company_id };
+    }
+    if (professional_id) {
+      where = { ...where, professional_id };
+    }
+
+    const order = orderBy
+      ? {
+          [orderBy.split(':')[0]]: orderBy.split(':')[1],
+        }
+      : { created_at: 'desc' };
+
+    const schedules = await this.pagination.paginate(this.prisma.schedules, {
+      where,
+      page,
+      pageSize,
+      orderBy: order,
+      include: {
+        professional: {
+          select: userSelect,
+        },
+        schedules_services: {
+          include: true,
+        },
+      },
+    });
+
+    return schedules;
+  }
+
+  findOne(id: string) {
     return `This action returns a #${id} schedule`;
   }
 
-  update(id: number, updateScheduleDto: UpdateScheduleDto) {
+  update(id: string, updateScheduleDto: UpdateScheduleDto) {
     return `This action updates a #${id} schedule`;
   }
 
-  remove(id: number) {
+  remove(id: string) {
     return `This action removes a #${id} schedule`;
   }
 }

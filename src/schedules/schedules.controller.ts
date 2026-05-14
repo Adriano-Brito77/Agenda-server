@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { SchedulesService } from './schedules.service';
 import {
@@ -17,6 +18,7 @@ import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { JwtGuard } from '../auth/jwt/jwt-guard';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { CurrentUser, type AuthUser } from '../auth/jwt/current-user';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
 
 @Controller('schedules')
 @UseGuards(JwtGuard)
@@ -33,13 +35,13 @@ export class SchedulesController {
   }
 
   @Get()
-  findAll() {
-    return this.schedulesService.findAll();
+  findAll(@Query() pagination: PaginationDto) {
+    return this.schedulesService.findAll(pagination);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.schedulesService.findOne(+id);
+    return this.schedulesService.findOne(id);
   }
 
   @Patch(':id')
@@ -47,11 +49,11 @@ export class SchedulesController {
     @Param('id') id: string,
     @Body() updateScheduleDto: UpdateScheduleDto,
   ) {
-    return this.schedulesService.update(+id, updateScheduleDto);
+    return this.schedulesService.update(id, updateScheduleDto);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.schedulesService.remove(+id);
+    return this.schedulesService.remove(id);
   }
 }
