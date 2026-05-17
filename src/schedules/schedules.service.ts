@@ -1,14 +1,15 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma.service';
-import { CreateScheduleDto } from './dto/create-schedule.dto';
-import { UpdateScheduleDto } from './dto/update-schedule.dto';
 import { PaginationDto } from '../pagination/dto/pagination.dto';
 import { PaginationService } from '../pagination/pagination.service';
+import { PrismaService } from '../prisma.service';
 import { userSelect } from '../users/users.service';
+import { CreateScheduleDto } from './dto/create-schedule.dto';
+import { UpdateScheduleDto } from './dto/update-schedule.dto';
 
 @Injectable()
 export class SchedulesService {
@@ -116,6 +117,7 @@ export class SchedulesService {
 
       let endTimewithHours = `${endTime.getHours().toString().padStart(2, '0')}:${endTime.getMinutes().toString().padStart(2, '0')}`;
 
+      /* valida se há conflito com o horário de intervalo do profissional */
       const breakProfessional = await prisma.professionalSchedule.findFirst({
         where: {
           professional_id: professional_id ? professional_id : user_id,
@@ -167,7 +169,7 @@ export class SchedulesService {
         );
       }
 
-      /* valida se há conflito de horários */
+      /* valida se há conflito de horários com outros agendamentos */
       const conflictingSchedule = await prisma.schedules.findFirst({
         where: {
           professional_id: professional_id ? professional_id : user_id,
@@ -249,6 +251,7 @@ export class SchedulesService {
     let where = {};
     if (search) {
       where = {
+        ...where,
         OR: [
           { client_name_external: { contains: search, mode: 'insensitive' } },
           { client_email_external: { contains: search, mode: 'insensitive' } },
@@ -258,6 +261,7 @@ export class SchedulesService {
         ],
       };
     }
+    where = { ...where, status: { not: 'CANCELED' } };
 
     if (company_id) {
       where = { ...where, company_id };
@@ -290,15 +294,51 @@ export class SchedulesService {
     return schedules;
   }
 
-  findOne(id: string) {
-    return `This action returns a #${id} schedule`;
+  async findOne(id: string) {
+    const schedule = await this.prisma.schedules.findUnique({
+      where: { id },
+      include: {
+        professional: {
+          select: userSelect,
+        },
+        schedules_services: true,
+      },
+    });
+    if (!schedule) {
+      throw new NotFoundException('Agendamento não encontrado');
+    }
+
+    return schedule;
   }
 
-  update(id: string, updateScheduleDto: UpdateScheduleDto) {
-    return `This action updates a #${id} schedule`;
-  }
+  async updateStatus(
+    id: string,
+    { status }: UpdateScheduleDto,
+    user_id: string,
+  ) {
+    /* verifica se o agendamento existe */
+    await this.findOne(id);
 
-  remove(id: string) {
-    return `This action removes a #${id} schedule`;
+    /* verifica se o usuário tem permissão para atualizar o agendamento */
+    const userAutorization = await this.prisma.schedules.findFirst({
+      where: {
+        id,
+        OR: [{ professional_id: user_id }, { creator_id: user_id }],
+      },
+    });
+
+    if (!userAutorization) {
+      throw new ForbiddenException(
+        'Você não tem permissão para atualizar este agendamento',
+      );
+    }
+
+    /* atualiza o status do agendamento */
+    return this.prisma.schedules.update({
+      where: { id },
+      data: {
+        status,
+      },
+    });
   }
 }

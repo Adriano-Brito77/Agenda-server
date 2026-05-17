@@ -1,24 +1,26 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
-  Patch,
   Param,
-  Delete,
-  UseGuards,
+  Post,
+  Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { SchedulesService } from './schedules.service';
+import { ZodValidationPipe } from 'nestjs-zod';
+import { CurrentUser, type AuthUser } from '../auth/jwt/current-user';
+import { JwtGuard } from '../auth/jwt/jwt-guard';
+import { PaginationDto } from '../pagination/dto/pagination.dto';
 import {
   CreateScheduleDto,
   createSchedulesBodySchema,
 } from './dto/create-schedule.dto';
-import { UpdateScheduleDto } from './dto/update-schedule.dto';
-import { JwtGuard } from '../auth/jwt/jwt-guard';
-import { ZodValidationPipe } from 'nestjs-zod';
-import { CurrentUser, type AuthUser } from '../auth/jwt/current-user';
-import { PaginationDto } from '../pagination/dto/pagination.dto';
+import {
+  UpdateScheduleDto,
+  updateSchedulesBodySchema,
+} from './dto/update-schedule.dto';
+import { SchedulesService } from './schedules.service';
 
 @Controller('schedules')
 @UseGuards(JwtGuard)
@@ -44,16 +46,13 @@ export class SchedulesController {
     return this.schedulesService.findOne(id);
   }
 
-  @Patch(':id')
-  update(
+  @Put(':id')
+  updateStatus(
     @Param('id') id: string,
-    @Body() updateScheduleDto: UpdateScheduleDto,
+    @Query(new ZodValidationPipe(updateSchedulesBodySchema))
+    updateScheduleDto: UpdateScheduleDto,
+    @CurrentUser() user: AuthUser,
   ) {
-    return this.schedulesService.update(id, updateScheduleDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.schedulesService.remove(id);
+    return this.schedulesService.updateStatus(id, updateScheduleDto, user.id);
   }
 }
